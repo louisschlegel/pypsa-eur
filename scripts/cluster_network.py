@@ -370,6 +370,19 @@ def busmap_for_n_clusters(
     )
 
 
+def busmap_for_all_buses(n: pypsa.Network) -> pd.Series:
+    """
+    Map every bus to its own cluster, named like regularly clustered buses.
+
+    Downstream scripts expect bus names to start with the two-letter country
+    code (e.g. ``DE0 3``). The raw bus names of the base network (e.g.
+    ``relation/123``) do not, so each bus is renamed to ``<country>0 <i>``.
+    """
+    counter = n.buses.groupby("country").cumcount()
+    labels = n.buses.country.astype(str) + "0 " + counter.astype(str)
+    return sanitize_busmap(labels.rename("busmap"))
+
+
 def clustering_for_n_clusters(
     n: pypsa.Network,
     busmap: pd.Series,
@@ -664,10 +677,14 @@ if __name__ == "__main__":
     )
 
     if params.n_clusters == "all":
-        # Fast-path if no clustering is necessary
-        busmap = sanitize_busmap(n.buses.index.to_series())
-        linemap = n.lines.index.to_series()
-        clustering = pypsa.clustering.spatial.Clustering(n, busmap, linemap)
+        # No spatial clustering, but rename buses to start with the country
+        # code as required by downstream rules (#2192)
+        busmap = busmap_for_all_buses(n)
+        clustering = clustering_for_n_clusters(
+            n,
+            busmap,
+            aggregation_strategies=params.aggregation_strategies,
+        )
     else:
         if mode == "administrative":
             busmap = busmap_for_admin_regions(

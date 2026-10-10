@@ -12,6 +12,8 @@
 
 * Feature: Split logging levels between console and log file. The console now defaults to `WARNING`, while the log file of each rule still records `INFO`. Configure via `logging: console_level` and `logging: file_level`. To print info messages to the console as before, set `logging: console_level: INFO` ([#2144](https://github.com/PyPSA/pypsa-eur/pull/2144)).
 
+* Fix: `clusters: all` now renames buses to start with the country code (e.g. `DE0 0`), as downstream rules such as `build_shipping_demand` require, instead of keeping the raw OSM bus names ([#2192](https://github.com/PyPSA/pypsa-eur/issues/2192)).
+
 * Removed `exclude-newer` exception for `snakemake-executor-plugin-slurm` from `pixi.toml` ([#2352](https://github.com/PyPSA/pypsa-eur/pull/2352)).
 * Fix: correct GEBCO bathymetry CRS typo for Moldova and Ukraine (EPSG: 4236 → 4326)
 
